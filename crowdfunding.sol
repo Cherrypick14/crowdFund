@@ -11,18 +11,21 @@ contract CrowdFunding {
     uint public deadline;
     uint public totalFunds;
     mapping(address => uint) public contributions;
+    address public mostGenerousContributor; 
 
     event FundReceived(address indexed contributor, uint amount);
     event GoalReached(uint totalFunds);
     event FundsWithdrawn(address indexed owner, uint amount);
     event RefundIssued(address indexed contributor, uint amount);
+    event MostGenerousContributorUpdated(address indexed contributor, uint totalFunds);
 
     // Constructor to initialize the contract
 
-    constructor(uint _goal, uint _duration){
+    constructor(uint _goal, uint _duration) {
         owner = msg.sender;
         goal = _goal;
         deadline = block.timestamp + _duration;
+        totalFunds = 0;
     }
 
     // Modifier to restrict access to the owner
@@ -42,6 +45,11 @@ contract CrowdFunding {
         totalFunds += msg.value;
 
         emit FundReceived(msg.sender, msg.value);
+
+        if (contributions[msg.sender] > contributions[mostGenerousContributor]){
+            mostGenerousContributor = msg.sender;
+            emit MostGenerousContributorUpdated(msg.sender, contributions[msg.sender]);
+        }
 
         if (totalFunds >= goal) {
             emit GoalReached(totalFunds);
@@ -75,5 +83,10 @@ contract CrowdFunding {
 
         emit RefundIssued(msg.sender, contributeAmount);
 
+    }
+    
+    // Function to get the most generous contributor
+    function getMostGenerousContributor() public view returns (address){
+        return mostGenerousContributor;
     }
 }
